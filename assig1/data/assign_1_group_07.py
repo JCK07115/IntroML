@@ -3,12 +3,15 @@
 #
 # Group 07
 # Chaoyue Xi chaoyuex@mun.ca
-# Oluwafunmiwo Sholola
-# Mohammad Hamza Khan mohammadhk@mun.ca
+# Oluwafunmiwo Judah Sholola
+#
+#  Mohammad Hamza Khan mohammadhk@mun.ca
 
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV
+
 
 # creating the training datasets
 train_DAT = pd.read_csv('train.sDAT.csv', header=None)
@@ -121,6 +124,13 @@ def Q3_results():
     plt.savefig('Q3.pdf', format='pdf')
     plt.show()
 
+def grid_search(X_train, y_train, model, params):
+    gs = GridSearchCV(model, params, cv=5, n_jobs=1, verbose=1, scoring='r2')
+    gs.fit(X_train, y_train)
+    print('Best Params:', gs.best_params_)
+    return gs.best_params_
+
+hp_tuning_res = grid_search(df_fs_scaled_price, target_price_y, KNeighborsRegressor(), grid_params)
 
 def diagnoseDAT(Xtest, data_dir):
     """Returns a vector of predictions with elements "0" for sNC and "1" for
@@ -131,8 +141,16 @@ def diagnoseDAT(Xtest, data_dir):
     """
     pass  # TODO: Hello Judah. The doc above is from the assignment guide. Please follow it and do your work here. XD
 
+    grid_params = {
+        'n_neighbors'   :   list(range(1,30)),
+        'weights'       :   ['uniform', 'distance'],
+        'metric'        :   ['euclidean', 'manhattan', 'minkowski']
+    }
+
+
 
 if __name__ == "__main__":
     Q1_results()
     Q2_results()
     Q3_results()
+
