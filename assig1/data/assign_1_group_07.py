@@ -3,8 +3,8 @@
 #
 # Group 07
 # Chaoyue Xi chaoyuex@mun.ca
-# <Group Member 2 name> <Group Member 2 email>
-# <Group Member 3 name> <Group Member 3 email>
+# Oluwafunmiwo Sholola
+# Mohammad Hamza Khan mohammadhk@mun.ca
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -54,16 +54,7 @@ def classify(k=30, metric="Euclidean", plot=True):
     neigh = KNeighborsClassifier(n_neighbors=k, p=p)
     neigh.fit(train_df[['x1', 'x2']], train_df['label'])
     if plot:
-        grid_points_copy = grid_points.copy()
-        grid_points_copy['predict'] = neigh.predict(grid_points)
-        _, ax = plt.subplots(figsize=(10, 10))
-        ax.scatter(grid_points_copy['x1'],
-                   grid_points_copy['x2'],
-                   c=grid_points_copy['predict'].map(colors),
-                   marker='.')
-        ax.set_xlabel("$x_1$")
-        ax.set_ylabel("$x_2$")
-        ax.set_title(metric + ", k=" + str(k))
+        draw_plot(neigh, k, metric)
         plt.savefig('classify.pdf', format='pdf')
         plt.show()
     return neigh
@@ -129,6 +120,16 @@ def Q3_results():
     err_plot.set_title("Euclidean, Error rate versus Model capacity")
     plt.savefig('Q3.pdf', format='pdf')
     plt.show()
+
+
+def diagnoseDAT(Xtest, data_dir):
+    """Returns a vector of predictions with elements "0" for sNC and "1" for
+    sDAT, corresponding to each of the N_test features vectors in Xtest
+    Xtest N_test x 2 matrix of test feature vectors
+    data_dir full path to the folder containing the following files:
+    train.sNC.csv, train.sDAT.csv, test.sNC.csv, test.sDAT.csv
+    """
+    pass  # TODO: Hello Judah. The doc above is from the assignment guide. Please follow it and do your work here. XD
 
 
 if __name__ == "__main__":
