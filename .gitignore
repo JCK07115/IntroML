@@ -1,3 +1,4 @@
 /assign1/data/deprec/
 /assign1/data/log/
-/assign1/data/plots/*
+/assign1/data/plots/*.png
+/assign1/data/plots/*.pdf
