@@ -1,4 +1,6 @@
+import assign_1_group_07
 
+"""
 list = []
 list.append(2)
 list.append(3)
@@ -16,3 +18,7 @@ print(list)
 
 print(min(list))
 print(max(list))
+"""
+
+# assign_1_group_07.classify()
+assign_1_group_07.Q4_results()
