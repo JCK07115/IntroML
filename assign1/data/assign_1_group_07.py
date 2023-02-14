@@ -367,7 +367,6 @@ def Q4_results(data_dir=path.abspath('.')):
     Xtest = test_df[['x1', 'x2']]
     ytest = diagnoseDAT(Xtest, data_dir)
     print(ytest)
-    print(type(ytest))
 
 if __name__ == "__main__":
     Q1_results()
