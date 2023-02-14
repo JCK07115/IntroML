@@ -34,7 +34,6 @@ train_NC['true_label'] = 0
 global train_df
 train_df = pd.concat([train_DAT, train_NC], axis=0)
 
-
 # creating the test datasets
 test_DAT = pd.read_csv('test.sDAT.csv', header=None)
 test_DAT.rename(columns={0: "x1", 1: "x2"}, inplace=True)
@@ -53,8 +52,6 @@ grid_points.rename(columns={0: "x1", 1: "x2"}, inplace=True)
 
 k_set = [1, 3, 5, 10, 20, 30, 50, 100, 150, 200]
 colors = {0: 'green', 1: "blue"}
-
-
 """
 @params:
         train_errs  -  
@@ -115,8 +112,9 @@ def draw_plot(train_errs, test_errs, k_set, metric="Euclidean", rows=1, cols=1):
         k_set   - opt - list of k values to use as neighbours in KNN model, defaults to [30]
         metric  - opt - distance metric, defaults to Euclidean
 @desc:
-        performs classification using the KNNClassifiers model and the parameters specified
-        as formal arguments into the function, or the defaults if no params are passed in
+        performs classification using the KNNClassifiers model and
+        the parameters specified as formal arguments into the function,
+        or the defaults if no params are passed in
 
 """
 def classify( k_set=[30], metric="Euclidean", save=False, filename='temp.png'):
@@ -147,8 +145,25 @@ def classify( k_set=[30], metric="Euclidean", save=False, filename='temp.png'):
         grid_points_copy[attr_id] = model.predict(grid_points_copy[['x1', 'x2']])
 
         # calculate training and test error rates
-        train_errs.append(round( 1 - model.score(train_df[['x1', 'x2']], train_df['true_label']), 4))
-        test_errs.append(round(1 - model.score(test_df[['x1', 'x2']], test_df['true_label']), 4))
+        train_errs.append(
+            round(
+                1 - model.score(train_df[['x1', 'x2']], train_df['true_label']),
+                4))
+        test_errs.append(
+            round(
+                1 - model.score(test_df[['x1', 'x2']], test_df['true_label']),
+                4))
+
+
+    rows, cols = 1, 1
+    if len(k_set)>1:
+        rows = 2
+        cols = int(len(k_set)/2 + len(k_set)%2)
+
+    draw_plot(train_errs, test_errs, k_set, metric, rows, cols)
+
+    if save:
+       plt.savefig(filename, format='png')
 
 
     rows, cols = 1, 1
@@ -181,7 +196,7 @@ def Q1_results():
 def Q2_results():
     print('Generating results for Q2...')
 
-    # using the ideal value of k in k_set, re-predict, and store 
+    # using the ideal value of k in k_set, re-predict, and store
     # the mean of the test errors using the Manhattan distance metric
     train_errs_manh, test_errs_manh = classify(k_set=[k_set[ind_min_test_err_eucl]], metric="Manhattan", save=True, filename='Q2.png')
     global mean_manh_test_err
@@ -221,6 +236,7 @@ def Q3_results():
 
     plt.savefig('Q3.png', format='png')
 
+
 def grid_search(X_train, y_train, model, params):
     gs = GridSearchCV(model, params, cv=5, n_jobs=1, verbose=1, scoring='r2')
     gs.fit(X_train, y_train)
@@ -241,11 +257,11 @@ def grid_search(X_train, y_train, model, params):
 def diagnoseDAT(Xtest, data_dir):
 
     # creating the training datasets using files in `data_dir`
-    train_DAT = pd.read_csv(data_dir+'/train.sDAT.csv', header=None)
+    train_DAT = pd.read_csv(data_dir + '/train.sDAT.csv', header=None)
     train_DAT.rename(columns={0: "x1", 1: "x2"}, inplace=True)
     train_DAT['true_label'] = 1
 
-    train_NC = pd.read_csv(data_dir+'/train.sNC.csv', header=None)
+    train_NC = pd.read_csv(data_dir + '/train.sNC.csv', header=None)
     train_NC.rename(columns={0: "x1", 1: "x2"}, inplace=True)
     train_NC['true_label'] = 0
 
@@ -351,10 +367,10 @@ def Q4_results(data_dir=path.abspath('.')):
     Xtest = test_df[['x1', 'x2']]
     ytest = diagnoseDAT(Xtest, data_dir)
     print(ytest)
+    print(type(ytest))
 
 if __name__ == "__main__":
     Q1_results()
     Q2_results()
     Q3_results()
     Q4_results()
-
