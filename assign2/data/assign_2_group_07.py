@@ -8,7 +8,10 @@
 """
 
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+import numpy as np
+import math
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.model_selection import KFold
 
 column_names = {
     "Cement_component1__kgInAM_3Mixture_": "Cement",
@@ -30,35 +33,70 @@ test_df = pd.read_csv('./test.csv')
 test_df.rename(columns=column_names, inplace=True)
 
 
-def classify(train, test, model="Simple", k=1, alpha=0):
+def classify(train, test, model, k, alpha=0):
+    reg = None
     if model == "Simple":
-        return simpleLR_validation(train, test)
+        reg = LinearRegression()
+        print("Simple Linear Regression")
     if model == "Ridge":
-        return "TODO"
+        reg = Ridge(alpha=alpha)
+        print("Ridge Regression")
     if model == "Lasso":
-        return "TODO"
+        reg = Lasso(alpha=alpha)
+        print("Lasso Regression")
+    if reg:
+        validation(reg, train, test)
+        CV(reg, train, k)
+        print("=========================================")
+    else:
+        print("Unknown Error")
 
 
-def simpleLR_validation(train, test):
-    reg = LinearRegression().fit(train.iloc[:, :8],
-                                 train['Concrete Compressive Strength'])
-    return reg.score(test.iloc[:, :8], test['Concrete Compressive Strength'])
+def RSE(model, pred, y_true):
+    y_pred = model.predict(pred)
+    RSS = np.sum(np.square(y_true - y_pred))
+    return math.sqrt(RSS / (len(y_true) - 2))
 
 
-def simpleLR_CV(train, test, k):
-    pass
+def validation(model, train, test):
+    reg = model.fit(train.iloc[:, :8], train['Concrete Compressive Strength'])
+    R_square = reg.score(test.iloc[:, :8],
+                         test['Concrete Compressive Strength'])
+    rse = RSE(reg, test.iloc[:, :8], test['Concrete Compressive Strength'])
+    print("Validation:")
+    print(f"RSE: {rse}")
+    print(f"R^2: {R_square}")
+
+
+def CV(model, train, k):
+    kf = KFold(n_splits=k)
+    X = train.iloc[:, :8]
+    y = train['Concrete Compressive Strength']
+    R_square = []
+    rse = []
+    for _, (train_index, test_index) in enumerate(kf.split(X, y)):
+        X_train_folds = X.iloc[train_index]
+        y_train_folds = y.iloc[train_index]
+        X_test_folds = X.iloc[test_index]
+        y_test_folds = y.iloc[test_index]
+        reg = model.fit(X_train_folds, y_train_folds)
+        R_square += [reg.score(X_test_folds, y_test_folds)]
+        rse += [RSE(reg, X_test_folds, y_test_folds)]
+    print("Cross Validation:")
+    print(f"RSE: {rse}")
+    print(f"R^2: {R_square}")
 
 
 def Q1_results():
-    pass
+    classify(train_df, test_df, "Simple", 3)
 
 
 def Q2_results():
-    pass
+    classify(train_df, test_df, "Ridge", 3, alpha=0.5)
 
 
 def Q3_results():
-    pass
+    classify(train_df, test_df, "Lasso", 3, alpha=0.5)
 
 
 def predictCompressiveStrength(Xtest, data_dir):
@@ -69,4 +107,3 @@ if __name__ == "__main__":
     Q1_results()
     Q2_results()
     Q3_results()
-    print(classify(train_df, test_df))
