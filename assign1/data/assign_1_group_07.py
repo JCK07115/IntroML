@@ -21,17 +21,13 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import Normalizer
 from sklearn.preprocessing import FunctionTransformer
 
-# change as required
-f_path = path.abspath('.')
-f_path += '\\'
-# print(f_path)
 
 # creating the training datasets
-train_DAT = pd.read_csv(f_path + 'train.sDAT.csv', header=None)
+train_DAT = pd.read_csv('train.sDAT.csv', header=None)
 train_DAT.rename(columns={0: "x1", 1: "x2"}, inplace=True)
 train_DAT['true_label'] = 1 
 
-train_NC = pd.read_csv(f_path + 'train.sNC.csv', header=None)
+train_NC = pd.read_csv('train.sNC.csv', header=None)
 train_NC.rename(columns={0: "x1", 1: "x2"}, inplace=True)
 train_NC['true_label'] = 0
 
@@ -39,18 +35,18 @@ train_NC['true_label'] = 0
 train_df = pd.concat([train_DAT, train_NC], axis=0)
 
 # creating the test datasets
-test_DAT = pd.read_csv(f_path + 'test.sDAT.csv', header=None)
+test_DAT = pd.read_csv('test.sDAT.csv', header=None)
 test_DAT.rename(columns={0: "x1", 1: "x2"}, inplace=True)
 test_DAT['true_label'] = 1
 
-test_NC = pd.read_csv(f_path + 'test.sNC.csv', header=None)
+test_NC = pd.read_csv('test.sNC.csv', header=None)
 test_NC.rename(columns={0: "x1", 1: "x2"}, inplace=True)
 test_NC['true_label'] = 0
 
 # merging the two testing datasets
 test_df = pd.concat([test_DAT, test_NC], axis=0)
 
-grid_points = pd.read_csv(f_path + '2D_grid_points.csv', header=None)
+grid_points = pd.read_csv('2D_grid_points.csv', header=None)
 grid_points.rename(columns={0: "x1", 1: "x2"}, inplace=True)
 
 k_set = [1, 3, 5, 10, 20, 30, 50, 100, 150, 200]
@@ -187,41 +183,28 @@ def Q1_results(train_df, test_df):
 
     # predict using various k values
     train_errs_eucl, test_errs_eucl = classify(train_df, test_df, k_set=k_set, save=True, filename='Q1.png')
-    global mean_eucl_test_err
-    mean_eucl_test_err = mean(test_errs_eucl)
-
-    # store index of min test error using Eucl
-    global ind_min_test_err_eucl
-    ind_min_test_err_eucl = argmin(test_errs_eucl)
-
+    print('mean_test_err_eucl:', mean(test_errs_eucl))
 
 
 def Q2_results(train_df, test_df):
     print('Generating results for Q2...')
 
-    # using the ideal value of k in k_set, re-predict, and store
-    # the mean of the test errors using the Manhattan distance metric
-    train_errs_manh, test_errs_manh = classify(train_df, test_df, k_set=[k_set[ind_min_test_err_eucl]], metric="Manhattan", save=True, filename='Q2.png')
-    global mean_manh_test_err
-    mean_manh_test_err = mean(test_errs_manh)
-    # print('mean_eucl_test_err', mean_eucl_test_err, '\nmean_manh_test_err:', mean_manh_test_err)
+    # using the ideal value of k in k_set, re-predict, using the Manhattan distance metric
+    train_errs_manh, test_errs_manh = classify(train_df, test_df, k_set=[30], metric="Manhattan", save=True, filename='Q2.png')
+    print('nmean_test_err_manh:', mean(test_errs_manh))
 
 
 def Q3_results(train_df, test_df):
     print('Generating results for Q3...')
 
-    # determining which metric yields the lower (average) test error rate
-    metric = 'Euclidean'
-    if mean_manh_test_err < mean_eucl_test_err:
-        metric = 'Manhattan'
-
+    # using the metric that yields the lower (average) test error rate
     capacity = [1/k for k in k_set]
-    train_errs, test_errs = classify(train_df, test_df, k_set=k_set, metric=metric)
+    train_errs, test_errs = classify(train_df, test_df, k_set=k_set, metric='Manhattan')
 
     _, err_plot = plt.subplots(figsize=(10, 10))
     err_plot.plot(capacity, train_errs, 'o-r', color='blue', label='Training')
     err_plot.plot(capacity, test_errs, 'o-r', color='red', label='Testing')
-    err_plot.set_title(metric+", Error rate versus Model capacity")
+    err_plot.set_title('Manhattan'+", Error rate versus Model capacity")
     err_plot.set_xscale("log")
     err_plot.set(xlabel="1/k (log scale)", ylabel="Error rate")
     err_plot.legend()
@@ -454,8 +437,8 @@ def diagnoseDAT(Xtest, data_dir=path.abspath('.')):
     return ytest
 
 if __name__ == "__main__":
-    # Q1_results(train_df, test_df)
-    # Q2_results(train_df, test_df)
-    # Q3_results(train_df, test_df)
-    Q4_results(train_df, test_df)
+    Q1_results(train_df, test_df)
+    Q2_results(train_df, test_df)
+    Q3_results(train_df, test_df)
+    # Q4_results(train_df, test_df)
     # diagnoseDAT(test_df[['x1', 'x2']])
