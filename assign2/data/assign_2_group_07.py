@@ -196,15 +196,31 @@ def Q3_results():
     plt.savefig(fname="Q3.png", format='png')
 
 
-def predictCompressiveStrength(Xtest=None, data_dir=None):
-    train_poly = PolynomialFeatures(3).fit_transform(X_train, y_train)
-    test_poly = PolynomialFeatures(3).fit_transform(X_test, y_test)
-    # ytest = None
-    # return ytest
+def predictCompressiveStrength(Xtest, data_dir):
+    # Prepare the training dataset
+    trainDf = pd.read_csv(f'{data_dir}/train.csv')
+    trainDf.rename(columns=column_names, inplace=True)
+    testDf = pd.read_csv(f'{data_dir}/test.csv')
+    testDf.rename(columns=column_names, inplace=True)
+    df = pd.concat([trainDf, testDf], axis=0)
+    Xtrain = df.drop(columns=['CCStrength'])
+    ytrain = df['CCStrength']
+
+    # Train the model.
+    # Model: Polynomial regression with degree=3
+    poly = PolynomialFeatures(degree=3, include_bias=False)
+    train_poly = poly.fit_transform(Xtrain, ytrain)
+    reg = LinearRegression()
+    reg.fit(train_poly, ytrain)
+
+    # Predict the test value
+    test_poly = poly.fit_transform(Xtest)
+    return reg.predict(test_poly)
 
 
 if __name__ == "__main__":
     # Q1_results()
     # Q2_results()
     # Q3_results()
-    predictCompressiveStrength()
+    ytest = predictCompressiveStrength(X_test, '.')
+    print(r2_score(ytest, y_test))
