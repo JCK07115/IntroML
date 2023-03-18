@@ -40,10 +40,10 @@ def classify(train, test, model, k, alpha=0):
         print("Simple Linear Regression")
     if model == "Ridge":
         reg = Ridge(alpha=alpha)
-        print("Ridge Regression")
+        print(f"Ridge Regression(alpha={alpha})")
     if model == "Lasso":
         reg = Lasso(alpha=alpha)
-        print("Lasso Regression")
+        print(f"Lasso Regression(alpha={alpha})")
     if reg:
         validation(reg, train, test)
         CV(reg, train, k)
@@ -82,7 +82,7 @@ def CV(model, train, k):
         reg = model.fit(X_train_folds, y_train_folds)
         R_square += [reg.score(X_test_folds, y_test_folds)]
         rse += [RSE(reg, X_test_folds, y_test_folds)]
-    print("Cross Validation:")
+    print(f"Cross Validation(n_splits={k}):")
     print(f"RSE: {rse}")
     print(f"R^2: {R_square}")
 
