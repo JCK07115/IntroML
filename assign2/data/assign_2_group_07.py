@@ -136,7 +136,7 @@ def Q2_results():
 
 def Q3_results():
     lasso = Lasso()
-    Alpha = [1, 0.9, 0.7, 0.5, 0.3, 0.2, 0.1, 0.075, 0.05, 0.01]
+    Alpha = [1, 0.75, 0.5, 0.3, 0.2, 0.1, 0.0875, 0.075, 0.05, 0.01]
     params = {'alpha': Alpha}
     X = train_df.iloc[:, :8]
     y = train_df['Concrete Compressive Strength']
