@@ -55,11 +55,9 @@ def classify(model, K, tt_rs, tv_rs, train, alpha=0):
     if reg:
         val_models = []
         val_models_scores = []
-        for tt_r in tt_rs:          # train_test_ratio
-            for tv_r in tv_rs:        # test_val_ratio
+        for tt_r in tt_rs:  # train_test_ratio
+            for tv_r in tv_rs:  # test_val_ratio
                 mod, score = validation(model, train, tt_r, tv_r)
-
-
 
         CV(reg, train, K)
         print("=========================================")
@@ -70,6 +68,7 @@ def classify(model, K, tt_rs, tv_rs, train, alpha=0):
 def RSq(model, x_test, y_true):
     return r2_score(y_true, model.predict(x_test))
 
+
 def RSE(model, x_test, y_true):
     y_pred = model.predict(x_test)
     RSS = np.sum(np.square(y_true - y_pred))
@@ -78,11 +77,15 @@ def RSE(model, x_test, y_true):
 
 def validation(model, train, tt_r, tv_r):
     # train is now {tt_r} of the entire data set
-    x_train, x_test, y_train, y_test = train_test_split(X_train, y_train, test_size=1 - tt_r)
+    x_train, x_test, y_train, y_test = train_test_split(X_train,
+                                                        y_train,
+                                                        test_size=1 - tt_r)
 
     # test is now {1-tt_r-(tv_r*0.5)} of the initial data set
     # validation is now {1-tt_r-(tv_r*0.5)} of the initial data set
-    x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=tv_r) 
+    x_val, x_test, y_val, y_test = train_test_split(x_test,
+                                                    y_test,
+                                                    test_size=tv_r)
 
     # print(len(x_train), len(x_val), len(x_test))
 
@@ -120,9 +123,14 @@ def CV(model, K, train):
 def Q1_results():
     # validation (alpha's are ratio of )
     train_test_ratios = [0.2, 0.3, 0.5]
-    test_val_ratios = [0.5]                 # setting validation and test to be exactly half of whatever remains from tt_r split (10%, 15%, 25% ea.)
+    test_val_ratios = [
+        0.5
+    ]  # setting validation and test to be exactly half of whatever remains from tt_r split (10%, 15%, 25% ea.)
 
-    classify(model="Simple", tt_rs=train_test_ratios, tv_rs=test_val_ratios, train=train_df)
+    classify(model="Simple",
+             tt_rs=train_test_ratios,
+             tv_rs=test_val_ratios,
+             train=train_df)
 
     # cross-validation
     K_set = [2, 3, 5, 10, 15, 20, 30, 50, 100]
@@ -197,5 +205,6 @@ def predictCompressiveStrength(Xtest=None, data_dir=None):
 
 if __name__ == "__main__":
     # Q1_results()
-    Q2_results()
-    Q3_results()
+    # Q2_results()
+    # Q3_results()
+    predictCompressiveStrength()
