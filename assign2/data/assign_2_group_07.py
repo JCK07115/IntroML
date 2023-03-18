@@ -69,7 +69,7 @@ def validation(model, train, test):
 
 
 def CV(model, train, k):
-    kf = KFold(n_splits=k)
+    kf = KFold(n_splits=k, shuffle=True)
     X = train.iloc[:, :8]
     y = train['Concrete Compressive Strength']
     R_square = []
