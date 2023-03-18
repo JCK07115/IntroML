@@ -12,7 +12,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.model_selection import KFold, GridSearchCV, cross_val_score
+from sklearn.model_selection import KFold, GridSearchCV
 from sklearn.metrics import r2_score
 
 column_names = {
