@@ -34,20 +34,21 @@ test_df = pd.read_csv('./test.csv')
 test_df.rename(columns=column_names, inplace=True)
 
 
-def classify(train, test, model, k, alpha=0):
+def classify(model, K, r, train, alpha=0):
     reg = None
     if model == "Simple":
         reg = LinearRegression()
-        print("Simple Linear Regression")
-    if model == "Ridge":
+        print("Simple Linear Regression - [K={K}]")
+    elif model == "Ridge":
         reg = Ridge(alpha=alpha)
-        print(f"Ridge Regression(alpha={alpha})")
-    if model == "Lasso":
+        print(f"Ridge Regression - [K={K}, alpha={alpha}]")
+    elif model == "Lasso":
         reg = Lasso(alpha=alpha)
-        print(f"Lasso Regression(alpha={alpha})")
+        print(f"Lasso Regression - [K={K}, alpha={alpha}]")
+    
     if reg:
-        validation(reg, train, test)
-        CV(reg, train, k)
+        validation(reg, train, r)
+        CV(reg, train, K)
         print("=========================================")
     else:
         print("Unknown Error")
@@ -59,24 +60,25 @@ def RSE(model, pred, y_true):
     return math.sqrt(RSS / (len(y_true) - 2))
 
 
-def validation(model, train, test):
+def validation(model, train, r):
+    train, validation, test = 
+
     reg = model.fit(train.iloc[:, :8], train['Concrete Compressive Strength'])
     R_square = r2_score(test['Concrete Compressive Strength'],
                         reg.predict(test.iloc[:, :8]))
-    # R_square = reg.score(test.iloc[:, :8],
-    #                      test['Concrete Compressive Strength'])
     rse = RSE(reg, test.iloc[:, :8], test['Concrete Compressive Strength'])
     print("Validation:")
     print(f"RSE: {rse}")
     print(f"R^2: {R_square}")
 
 
-def CV(model, train, k):
+def CV(model, K, train):
     kf = KFold(n_splits=k, shuffle=True)
     X = train.iloc[:, :8]
     y = train['Concrete Compressive Strength']
     R_square = []
     rse = []
+    
     for _, (train_index, test_index) in enumerate(kf.split(X, y)):
         X_train_folds = X.iloc[train_index]
         y_train_folds = y.iloc[train_index]
@@ -84,17 +86,23 @@ def CV(model, train, k):
         y_test_folds = y.iloc[test_index]
         reg = model.fit(X_train_folds, y_train_folds)
         R_square += [r2_score(y_test_folds, reg.predict(X_test_folds))]
-        # R_square += [reg.score(X_test_folds, y_test_folds)]
         rse += [RSE(reg, X_test_folds, y_test_folds)]
-    print(f"Cross Validation(n_splits={k}):")
+
+    print(f"Cross Validation(n_splits={K}):")
     print(f"RSE: {np.mean(rse)}")
     print(f"R^2: {np.mean(R_square)}")
 
 
 def Q1_results():
-    K = [2, 3, 5, 10, 15, 20, 30, 50, 100]
-    for k in K:
-        classify(train_df, test_df, "Simple", k)
+    # validation (alpha's are ratio of )
+    split_ratios = [0.2, 0.3]
+    for r in split_ratios:
+        validation(train_df, r)
+
+    # cross-validation
+    K_set = [2, 3, 5, 10, 15, 20, 30, 50, 100]
+    for K in K_set:
+        classify(train_df, test_df, "Simple", K)
 
 
 def Q2_results():
