@@ -1,0 +1,6 @@
+data/deprec
+data/log/
+data/rss/*.png
+data/*.png
+data/test.py
+data/__pycache__/
