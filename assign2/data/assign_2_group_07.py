@@ -12,6 +12,7 @@ import numpy as np
 import math
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.model_selection import KFold
+from sklearn.metrics import r2_score
 
 column_names = {
     "Cement_component1__kgInAM_3Mixture_": "Cement",
@@ -60,8 +61,10 @@ def RSE(model, pred, y_true):
 
 def validation(model, train, test):
     reg = model.fit(train.iloc[:, :8], train['Concrete Compressive Strength'])
-    R_square = reg.score(test.iloc[:, :8],
-                         test['Concrete Compressive Strength'])
+    R_square = r2_score(test['Concrete Compressive Strength'],
+                        reg.predict(test.iloc[:, :8]))
+    # R_square = reg.score(test.iloc[:, :8],
+    #                      test['Concrete Compressive Strength'])
     rse = RSE(reg, test.iloc[:, :8], test['Concrete Compressive Strength'])
     print("Validation:")
     print(f"RSE: {rse}")
@@ -80,15 +83,18 @@ def CV(model, train, k):
         X_test_folds = X.iloc[test_index]
         y_test_folds = y.iloc[test_index]
         reg = model.fit(X_train_folds, y_train_folds)
-        R_square += [reg.score(X_test_folds, y_test_folds)]
+        R_square += [r2_score(y_test_folds, reg.predict(X_test_folds))]
+        # R_square += [reg.score(X_test_folds, y_test_folds)]
         rse += [RSE(reg, X_test_folds, y_test_folds)]
     print(f"Cross Validation(n_splits={k}):")
-    print(f"RSE: {rse}")
-    print(f"R^2: {R_square}")
+    print(f"RSE: {np.mean(rse)}")
+    print(f"R^2: {np.mean(R_square)}")
 
 
 def Q1_results():
-    classify(train_df, test_df, "Simple", 3)
+    K = [2, 3, 5, 10, 15, 20, 30, 50, 100]
+    for k in K:
+        classify(train_df, test_df, "Simple", k)
 
 
 def Q2_results():
@@ -105,5 +111,5 @@ def predictCompressiveStrength(Xtest, data_dir):
 
 if __name__ == "__main__":
     Q1_results()
-    Q2_results()
-    Q3_results()
+    # Q2_results()
+    # Q3_results()
