@@ -220,7 +220,5 @@ def predictCompressiveStrength(Xtest, data_dir):
 
 if __name__ == "__main__":
     # Q1_results()
-    # Q2_results()
-    # Q3_results()
-    ytest = predictCompressiveStrength(X_test, '.')
-    print(r2_score(ytest, y_test))
+    Q2_results()
+    Q3_results()
