@@ -11,20 +11,19 @@ import pandas as pd
 import numpy as np
 import math
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, train_test_split
 from sklearn.metrics import r2_score
 
 column_names = {
     "Cement_component1__kgInAM_3Mixture_": "Cement",
-    "BlastFurnaceSlag_component2__kgInAM_3Mixture_": "Blast Furnace Slag",
-    "FlyAsh_component3__kgInAM_3Mixture_": "Fly Ash",
+    "BlastFurnaceSlag_component2__kgInAM_3Mixture_": "BFSlag",
+    "FlyAsh_component3__kgInAM_3Mixture_": "FlyAsh",
     "Water_component4__kgInAM_3Mixture_": "Water",
-    "Superplasticizer_component5__kgInAM_3Mixture_": "Superplasticizer",
-    "CoarseAggregate_component6__kgInAM_3Mixture_": "Coarse Aggregate",
-    "FineAggregate_component7__kgInAM_3Mixture_": "Fine Aggregate",
+    "Superplasticizer_component5__kgInAM_3Mixture_": "SPlasticizer",
+    "CoarseAggregate_component6__kgInAM_3Mixture_": "CoAggregate",
+    "FineAggregate_component7__kgInAM_3Mixture_": "FiAggregate",
     "Age_day_": "Age",
-    "ConcreteCompressiveStrength_MPa_Megapascals_":
-    "Concrete Compressive Strength"
+    "ConcreteCompressiveStrength_MPa_Megapascals_": "CCStrength"
 }
 
 # creating the training and testing dataframes
@@ -34,7 +33,7 @@ test_df = pd.read_csv('./test.csv')
 test_df.rename(columns=column_names, inplace=True)
 
 
-def classify(model, K, r, train, alpha=0):
+def classify(model, K, tt_r, tv_r, train, alpha=0):
     reg = None
     if model == "Simple":
         reg = LinearRegression()
@@ -60,20 +59,27 @@ def RSE(model, pred, y_true):
     return math.sqrt(RSS / (len(y_true) - 2))
 
 
-def validation(model, train, r):
-    train, validation, test = 
+def validation(model, train, tt_r, tv_r):
+    # train is now {tt_r} of the entire data set
+    x_train, x_test, y_train, y_test = train_test_split(train, train, test_size=1 - tt_r)
 
-    reg = model.fit(train.iloc[:, :8], train['Concrete Compressive Strength'])
-    R_square = r2_score(test['Concrete Compressive Strength'],
-                        reg.predict(test.iloc[:, :8]))
-    rse = RSE(reg, test.iloc[:, :8], test['Concrete Compressive Strength'])
+    # test is now {1-tt_r-(tv_r*0.5)} of the initial data set
+    # validation is now {1-tt_r-(tv_r*0.5)} of the initial data set
+    x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=tv_r) 
+
+    print(len(x_train), len(x_val), len(x_test))
+
+    model.fit(x_train.iloc[:, :8], x_train['CCStrength'])
+    R_square = r2_score(test['CCStrength'],
+                        model.predict(test.iloc[:, :8]))
+    rse = RSE(model, test.iloc[:, :8], test['CCStrength'])
     print("Validation:")
     print(f"RSE: {rse}")
     print(f"R^2: {R_square}")
 
 
 def CV(model, K, train):
-    kf = KFold(n_splits=k, shuffle=True)
+    kf = KFold(n_splits=K, shuffle=True)
     X = train.iloc[:, :8]
     y = train['Concrete Compressive Strength']
     R_square = []
@@ -95,14 +101,17 @@ def CV(model, K, train):
 
 def Q1_results():
     # validation (alpha's are ratio of )
-    split_ratios = [0.2, 0.3]
-    for r in split_ratios:
-        validation(train_df, r)
+    train_test_ratios = [0.2, 0.3, 0.5]
+    test_val_ratios = [0.5]                 # setting validation and test to be exactly half of whatever remains from tt_r split (10%, 15%, 25% ea.)
+
+    for tt_r in train_test_ratios:          # train_test_ratio
+        for tv_r in test_val_ratios:        # test_val_ratio
+            classify(train_df, tt_r, tv_r)
 
     # cross-validation
     K_set = [2, 3, 5, 10, 15, 20, 30, 50, 100]
     for K in K_set:
-        classify(train_df, test_df, "Simple", K)
+        classify("Simple", K, train_df)
 
 
 def Q2_results():
