@@ -131,7 +131,7 @@ def Q2_results():
 
     # Generate plot
     Score = clf.cv_results_['mean_test_score']
-    plt.figure()
+    plt.figure(figsize=(8, 6))
     plt.plot(Alpha, Score)
     plt.xlabel('alpha')
     plt.ylabel('score')
@@ -160,7 +160,7 @@ def Q3_results():
 
     # Generate plot
     Score = clf.cv_results_['mean_test_score']
-    plt.figure()
+    plt.figure(figsize=(8, 6))
     plt.plot(Alpha, Score)
     plt.xlabel('alpha')
     plt.ylabel('score')
