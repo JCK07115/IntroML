@@ -32,13 +32,14 @@ train_df = pd.read_csv('./train.csv')
 train_df.rename(columns=column_names, inplace=True)
 test_df = pd.read_csv('./test.csv')
 test_df.rename(columns=column_names, inplace=True)
-X_train = train_df.iloc[:, :8]
-y_train = train_df['Concrete Compressive Strength']
-X_test = test_df.iloc[:, :8]
-y_test = test_df['Concrete Compressive Strength']
+
+X_train = train_df.drop(columns=['CCStrength'])
+y_train = train_df['CCStrength']
+X_test = test_df.drop(columns=['CCStrength'])
+y_test = test_df['CCStrength']
 
 
-def classify(model, K, tt_r, tv_r, train, alpha=0):
+def classify(model, K, tt_rs, tv_rs, train, alpha=0):
     reg = None
     if model == "Simple":
         reg = LinearRegression()
@@ -51,57 +52,68 @@ def classify(model, K, tt_r, tv_r, train, alpha=0):
         print(f"Lasso Regression - [K={K}, alpha={alpha}]")
 
     if reg:
-        validation(reg, train, r)
+        val_models = []
+        val_models_scores = []
+        for tt_r in tt_rs:          # train_test_ratio
+            for tv_r in tv_rs:        # test_val_ratio
+                mod, score = validation(model, train, tt_r, tv_r)
+
+
+
         CV(reg, train, K)
         print("=========================================")
     else:
         print("Unknown Error")
 
 
-def RSE(model, pred, y_true):
-    y_pred = model.predict(pred)
+def RSq(model, x_test, y_true):
+    return r2_score(y_true, model.predict(x_test))
+
+def RSE(model, x_test, y_true):
+    y_pred = model.predict(x_test)
     RSS = np.sum(np.square(y_true - y_pred))
     return math.sqrt(RSS / (len(y_true) - 2))
 
 
 def validation(model, train, tt_r, tv_r):
     # train is now {tt_r} of the entire data set
-    x_train, x_test, y_train, y_test = train_test_split(train, train, test_size=1 - tt_r)
+    x_train, x_test, y_train, y_test = train_test_split(X_train, y_train, test_size=1 - tt_r)
 
     # test is now {1-tt_r-(tv_r*0.5)} of the initial data set
     # validation is now {1-tt_r-(tv_r*0.5)} of the initial data set
     x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=tv_r) 
 
-    print(len(x_train), len(x_val), len(x_test))
+    # print(len(x_train), len(x_val), len(x_test))
 
-    model.fit(x_train.iloc[:, :8], x_train['CCStrength'])
-    R_square = r2_score(test['CCStrength'],
-                        model.predict(test.iloc[:, :8]))
-    rse = RSE(model, test.iloc[:, :8], test['CCStrength'])
+    model.fit(x_train, y_train)
+    rse = RSE(model, x_val, y_val)
+    rsquare = RSq(model, x_val, y_val)
     print("Validation:")
     print(f"RSE: {rse}")
-    print(f"R^2: {R_square}")
+    print(f"R^2: {rsquare}")
+    return model
 
 
 def CV(model, K, train):
     kf = KFold(n_splits=K, shuffle=True)
-    X = train.iloc[:, :8]
-    y = train['Concrete Compressive Strength']
-    R_square = []
-    rse = []
+    # X = train.iloc[:, :8]
+    # y = train['Concrete Compressive Strength']
+    RSq_vals = []
+    RSE_vals = []
 
-    for _, (train_index, test_index) in enumerate(kf.split(X, y)):
-        X_train_folds = X.iloc[train_index]
-        y_train_folds = y.iloc[train_index]
-        X_test_folds = X.iloc[test_index]
-        y_test_folds = y.iloc[test_index]
-        reg = model.fit(X_train_folds, y_train_folds)
-        R_square += [r2_score(y_test_folds, reg.predict(X_test_folds))]
-        rse += [RSE(reg, X_test_folds, y_test_folds)]
+    for _, (train_index, test_index) in enumerate(kf.split(X_train, y_train)):
+        X_train_folds = X_train.iloc[train_index]
+        y_train_folds = y_train.iloc[train_index]
+        X_test_folds = X_train.iloc[test_index]
+        y_test_folds = y_train.iloc[test_index]
+        # reg = model.fit(X_train_folds, y_train_folds)
+        model.fit(X_train_folds, y_train_folds)
+        RSq_vals += [RSq(model, X_test_folds, y_test_folds)]
+        RSE_vals += [RSE(model, X_test_folds, y_test_folds)]
 
     print(f"Cross Validation(n_splits={K}):")
-    print(f"RSE: {np.mean(rse)}")
-    print(f"R^2: {np.mean(R_square)}")
+    print(f"RSE: {np.mean(RSq_vals)}")
+    print(f"R^2: {np.mean(RSE_vals)}")
 
 
 def Q1_results():
@@ -109,14 +121,12 @@ def Q1_results():
     train_test_ratios = [0.2, 0.3, 0.5]
     test_val_ratios = [0.5]                 # setting validation and test to be exactly half of whatever remains from tt_r split (10%, 15%, 25% ea.)
 
-    for tt_r in train_test_ratios:          # train_test_ratio
-        for tv_r in test_val_ratios:        # test_val_ratio
-            classify(train_df, tt_r, tv_r)
+    classify(model="Simple", tt_rs=train_test_ratios, tv_rs=test_val_ratios, train=train_df)
 
     # cross-validation
     K_set = [2, 3, 5, 10, 15, 20, 30, 50, 100]
     for K in K_set:
-        classify("Simple", K, train_df)
+        classify(model="Simple", K=K, train=train_df)
 
 
 def Q2_results():
@@ -140,7 +150,7 @@ def Q2_results():
 
     # Generate plot
     Score = clf.cv_results_['mean_test_score']
-    plt.figure()
+    plt.figure(figsize=(8, 6))
     plt.plot(Alpha, Score)
     plt.xlabel('alpha')
     plt.ylabel('score')
@@ -169,7 +179,7 @@ def Q3_results():
 
     # Generate plot
     Score = clf.cv_results_['mean_test_score']
-    plt.figure()
+    plt.figure(figsize=(8, 6))
     plt.plot(Alpha, Score)
     plt.xlabel('alpha')
     plt.ylabel('score')
@@ -183,6 +193,6 @@ def predictCompressiveStrength(Xtest, data_dir):
 
 
 if __name__ == "__main__":
-    # Q1_results()
-    Q2_results()
-    Q3_results()
+    Q1_results()
+    # Q2_results()
+    # Q3_results()
