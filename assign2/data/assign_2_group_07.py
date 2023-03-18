@@ -33,6 +33,10 @@ train_df = pd.read_csv('./train.csv')
 train_df.rename(columns=column_names, inplace=True)
 test_df = pd.read_csv('./test.csv')
 test_df.rename(columns=column_names, inplace=True)
+X_train = train_df.iloc[:, :8]
+y_train = train_df['Concrete Compressive Strength']
+X_test = test_df.iloc[:, :8]
+y_test = test_df['Concrete Compressive Strength']
 
 
 def classify(model, K, r, train, alpha=0):
@@ -46,7 +50,7 @@ def classify(model, K, r, train, alpha=0):
     elif model == "Lasso":
         reg = Lasso(alpha=alpha)
         print(f"Lasso Regression - [K={K}, alpha={alpha}]")
-    
+
     if reg:
         validation(reg, train, r)
         CV(reg, train, K)
@@ -62,7 +66,7 @@ def RSE(model, pred, y_true):
 
 
 def validation(model, train, r):
-    # train, validation, test = 
+    # train, validation, test =
 
     reg = model.fit(train.iloc[:, :8], train['Concrete Compressive Strength'])
     R_square = r2_score(test['Concrete Compressive Strength'],
@@ -79,7 +83,7 @@ def CV(model, K, train):
     y = train['Concrete Compressive Strength']
     R_square = []
     rse = []
-    
+
     for _, (train_index, test_index) in enumerate(kf.split(X, y)):
         X_train_folds = X.iloc[train_index]
         y_train_folds = y.iloc[train_index]
@@ -107,24 +111,25 @@ def Q1_results():
 
 
 def Q2_results():
+    # Set GridSearchCV
     ridge = Ridge()
     Alpha = [1, 0.9875, 0.975, 0.95, 0.9, 0.8, 0.7, 0.5, 0.2, 0.01]
     params = {'alpha': Alpha}
-    X = train_df.iloc[:, :8]
-    y = train_df['Concrete Compressive Strength']
     clf = GridSearchCV(ridge, params)
-    clf.fit(X, y)
+    clf.fit(X_train, y_train)
+
+    # Train and test model with best alpha
     alpha = clf.best_params_['alpha']
     reg = Ridge(alpha)
-    reg.fit(X, y)
-    X_test = test_df.iloc[:, :8]
-    y_test = test_df['Concrete Compressive Strength']
+    reg.fit(X_train, y_train)
     R_square = r2_score(y_test, reg.predict(X_test))
     rse = RSE(reg, X_test, y_test)
     print(f"Ridge Regression - alpha={alpha}")
     print(f"RSE: {rse}")
     print(f"R^2: {R_square}")
     print("=========================================")
+
+    # Generate plot
     Score = clf.cv_results_['mean_test_score']
     plt.figure()
     plt.plot(Alpha, Score)
@@ -135,24 +140,25 @@ def Q2_results():
 
 
 def Q3_results():
+    # Set GridSearchCV
     lasso = Lasso()
     Alpha = [1, 0.75, 0.5, 0.3, 0.2, 0.1, 0.0875, 0.075, 0.05, 0.01]
     params = {'alpha': Alpha}
-    X = train_df.iloc[:, :8]
-    y = train_df['Concrete Compressive Strength']
     clf = GridSearchCV(lasso, params)
-    clf.fit(X, y)
+    clf.fit(X_train, y_train)
+
+    # Train and test model with best alpha
     alpha = clf.best_params_['alpha']
     reg = Lasso(alpha)
-    reg.fit(X, y)
-    X_test = test_df.iloc[:, :8]
-    y_test = test_df['Concrete Compressive Strength']
+    reg.fit(X_train, y_train)
     R_square = r2_score(y_test, reg.predict(X_test))
     rse = RSE(reg, X_test, y_test)
     print(f"Lasso Regression - alpha={alpha}")
     print(f"RSE: {rse}")
     print(f"R^2: {R_square}")
     print("=========================================")
+
+    # Generate plot
     Score = clf.cv_results_['mean_test_score']
     plt.figure()
     plt.plot(Alpha, Score)
