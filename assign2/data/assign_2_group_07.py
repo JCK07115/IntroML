@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.model_selection import KFold, GridSearchCV
 from sklearn.metrics import r2_score
+from sklearn.preprocessing import PolynomialFeatures
 
 column_names = {
     "Cement_component1__kgInAM_3Mixture_": "Cement",
@@ -168,12 +169,15 @@ def Q3_results():
     plt.savefig(fname="Q3.png", format='png')
 
 
-def predictCompressiveStrength(Xtest, data_dir):
-    ytest = None
-    return ytest
+def predictCompressiveStrength(Xtest=None, data_dir=None):
+    train_poly = PolynomialFeatures(3).fit_transform(X_train, y_train)
+    test_poly = PolynomialFeatures(3).fit_transform(X_test, y_test)
+    # ytest = None
+    # return ytest
 
 
 if __name__ == "__main__":
     # Q1_results()
-    Q2_results()
-    Q3_results()
+    # Q2_results()
+    # Q3_results()
+    predictCompressiveStrength()
