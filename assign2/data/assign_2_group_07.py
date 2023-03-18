@@ -163,7 +163,8 @@ def Q3_results():
 
 
 def predictCompressiveStrength(Xtest, data_dir):
-    pass
+    ytest = None
+    return ytest
 
 
 if __name__ == "__main__":
