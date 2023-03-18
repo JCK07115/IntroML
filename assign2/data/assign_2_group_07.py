@@ -108,7 +108,7 @@ def Q1_results():
 
 def Q2_results():
     ridge = Ridge()
-    Alpha = [1, 0.95, 0.9, 0.8, 0.7, 0.5, 0.3, 0.1, 0.05, 0.01]
+    Alpha = [1, 0.9875, 0.975, 0.95, 0.9, 0.8, 0.7, 0.5, 0.2, 0.01]
     params = {'alpha': Alpha}
     X = train_df.iloc[:, :8]
     y = train_df['Concrete Compressive Strength']
