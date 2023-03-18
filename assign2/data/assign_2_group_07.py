@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import math
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, GridSearchCV
 from sklearn.metrics import r2_score
 
 column_names = {
@@ -63,8 +63,6 @@ def validation(model, train, test):
     reg = model.fit(train.iloc[:, :8], train['Concrete Compressive Strength'])
     R_square = r2_score(test['Concrete Compressive Strength'],
                         reg.predict(test.iloc[:, :8]))
-    # R_square = reg.score(test.iloc[:, :8],
-    #                      test['Concrete Compressive Strength'])
     rse = RSE(reg, test.iloc[:, :8], test['Concrete Compressive Strength'])
     print("Validation:")
     print(f"RSE: {rse}")
@@ -84,7 +82,6 @@ def CV(model, train, k):
         y_test_folds = y.iloc[test_index]
         reg = model.fit(X_train_folds, y_train_folds)
         R_square += [r2_score(y_test_folds, reg.predict(X_test_folds))]
-        # R_square += [reg.score(X_test_folds, y_test_folds)]
         rse += [RSE(reg, X_test_folds, y_test_folds)]
     print(f"Cross Validation(n_splits={k}):")
     print(f"RSE: {np.mean(rse)}")
@@ -98,11 +95,17 @@ def Q1_results():
 
 
 def Q2_results():
-    classify(train_df, test_df, "Ridge", 3, alpha=0.5)
+    ridge = Ridge()
+    params = {'alpha': [1, 0.1, 0.01, 0.001, 0.0001, 0]}
+    clf = GridSearchCV(ridge, params)
+    clf.fit(train_df.iloc[:, :8], train_df['Concrete Compressive Strength'])
+    print(clf.get_params())
 
 
 def Q3_results():
-    classify(train_df, test_df, "Lasso", 3, alpha=0.5)
+    Alpha = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]
+    for alpha in Alpha:
+        classify(train_df, test_df, "Lasso", 3, alpha=alpha)
 
 
 def predictCompressiveStrength(Xtest, data_dir):
@@ -110,6 +113,6 @@ def predictCompressiveStrength(Xtest, data_dir):
 
 
 if __name__ == "__main__":
-    Q1_results()
-    # Q2_results()
+    # Q1_results()
+    Q2_results()
     # Q3_results()
