@@ -4,3 +4,4 @@ data/rss/*.png
 data/*.png
 data/test.py
 data/__pycache__/
+../../.vscode

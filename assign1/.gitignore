@@ -4,5 +4,6 @@ data/plots/
 data/rss/*.png
 data/*.png
 data/test.py
+data/report.docx
 data/assign_1_group_07.zip
 /data/__pycache__/
