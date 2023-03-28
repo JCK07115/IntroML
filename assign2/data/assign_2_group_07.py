@@ -98,6 +98,7 @@ def classify(type, tt_rs=None, tv_rs=None, K_set=None, alpha=0):
         rsquare = RSq(opt_model, X_test, y_test)
         print(f"RSE_cv_test: {rse}")
         print(f"RSquare_cv_test: {rsquare}")
+        print("=========================================")
 
     else:
         print("Unknown Error")
