@@ -203,8 +203,8 @@ def Q1_results():
 def Q2_results():
     # Set GridSearchCV
     ridge = Ridge()
-    Alpha = [1, 0.9875, 0.975, 0.95, 0.9, 0.8, 0.7, 0.5, 0.2, 0.01]
-    params = {'alpha': Alpha}
+    alphas = [1, 0.9875, 0.975, 0.95, 0.9, 0.8, 0.7, 0.5, 0.2, 0.01]
+    params = {'alpha': alphas}
     clf = GridSearchCV(ridge, params)
     clf.fit(X_train, y_train)
 
@@ -222,7 +222,7 @@ def Q2_results():
     # Generate plot
     Score = clf.cv_results_['mean_test_score']
     plt.figure(figsize=(8, 6))
-    plt.plot(Alpha, Score)
+    plt.plot(alphas, Score)
     plt.xlabel('alpha')
     plt.ylabel('score')
     plt.title('Ridge')
@@ -232,8 +232,8 @@ def Q2_results():
 def Q3_results():
     # Set GridSearchCV
     lasso = Lasso()
-    Alpha = [1, 0.75, 0.5, 0.3, 0.2, 0.1, 0.0875, 0.075, 0.05, 0.01]
-    params = {'alpha': Alpha}
+    alphas = [1, 0.75, 0.5, 0.3, 0.2, 0.1, 0.0875, 0.075, 0.05, 0.01]
+    params = {'alpha': alphas}
     clf = GridSearchCV(lasso, params)
     clf.fit(X_train, y_train)
 
@@ -251,7 +251,7 @@ def Q3_results():
     # Generate plot
     Score = clf.cv_results_['mean_test_score']
     plt.figure(figsize=(8, 6))
-    plt.plot(Alpha, Score)
+    plt.plot(alphas, Score)
     plt.xlabel('alpha')
     plt.ylabel('score')
     plt.title('Lasso')
@@ -279,9 +279,8 @@ def predictCompressiveStrength(Xtest, data_dir):
     test_poly = poly.fit_transform(Xtest)
     return model.predict(test_poly)
 
-
 if __name__ == "__main__":
     Q1_results()
-    # Q2_results()
-    # Q3_results()
+    Q2_results()
+    Q3_results()
     # predictCompressiveStrength()
