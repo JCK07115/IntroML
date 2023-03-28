@@ -2,6 +2,9 @@ data/deprec
 data/log/
 data/rss/*.png
 data/*.png
+data/*.docx
 data/test.py
+data/*.tmp
+data/*.zip
 data/__pycache__/
 ../../.vscode
