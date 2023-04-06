@@ -66,7 +66,7 @@ def retrain_test(kernel, C, d=3, gamma='scale'):
         svm = SVC(kernel=kernel, C=C, degree=d)
     elif kernel == 'rbf':
         svm = SVC(kernel=kernel, C=C, gamma=gamma)
-    svm.fit(X_train, y_train)
+    svm.fit(X_test, y_test)
 
 
 def classify(kernel):
