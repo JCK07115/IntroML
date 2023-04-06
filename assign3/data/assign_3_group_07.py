@@ -111,11 +111,11 @@ def Q1_results():
 
 
 def Q2_results():
-    pass
+    classify('poly')
 
 
 def Q3_results():
-    pass
+    classify('rbf')
 
 
 def diagnoseDAT(Xtest, data_dir):
