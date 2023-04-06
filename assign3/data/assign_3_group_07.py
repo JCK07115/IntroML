@@ -8,6 +8,9 @@
 """
 
 import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
 
 columns = {
     0: "ctx-lh-inferiorparietal",
@@ -50,12 +53,61 @@ X_test = test_df.drop(columns=['label'])
 y_test = test_df['label']
 
 
-def classify():
-    pass
+def grid_search(params):
+    clf = GridSearchCV(SVC(), params)
+    clf.fit(X_train, y_train)
+    return clf.best_params_, clf.cv_results_['mean_test_score']
+
+
+def retrain_test(kernel, C, d=3, gamma='scale'):
+    if kernel == 'linear':
+        svm = SVC(kernel=kernel, C=C)
+    elif kernel == 'poly':
+        svm = SVC(kernel=kernel, C=C, degree=d)
+    elif kernel == 'rbf':
+        svm = SVC(kernel=kernel, C=C, gamma=gamma)
+    svm.fit(X_train, y_train)
+
+
+def classify(kernel):
+    if kernel == 'linear':
+        Cs = [0.1, 1, 10, 100, 1000]
+        params = {'kernel': [kernel], 'C': Cs}
+        best_params, Score = grid_search(params)
+        C = best_params['C']
+        retrain_test(kernel, C)
+        plt.figure(figsize=(8, 6))
+        plt.plot(Cs, Score)
+        plt.xlabel('C')
+        plt.ylabel('score')
+        plt.title('Linear')
+        plt.savefig(fname="Q1.png", format='png')
+    elif kernel == 'poly':
+        params = {
+            'kernel': [kernel],
+            'C': [0.1, 1, 10, 100, 1000],
+            'degree': [2, 3, 4, 5]
+        }
+        best_params, _ = grid_search(params)
+        C = best_params['C']
+        d = best_params['degree']
+        retrain_test(kernel, C, d=d)
+    elif kernel == 'rbf':
+        params = {
+            'kernel': [kernel],
+            'C': [0.1, 1, 10, 100, 1000],
+            'gamma': [1, 0.1, 0.01, 0.001, 0.0001]
+        }
+        best_params, _ = grid_search(params)
+        C = best_params['C']
+        gamma = best_params['gamma']
+        retrain_test(kernel, C, gamma=gamma)
+    else:
+        print('Only support the following kernel: linear, poly, rbf')
 
 
 def Q1_results():
-    pass
+    classify('linear')
 
 
 def Q2_results():
