@@ -109,7 +109,7 @@ def classify(kernel):
         params = {
             'kernel': [kernel],
             'C': [0.1, 1, 10, 100, 1000],
-            'degree': [2, 3]
+            'degree': [2, 3, 4, 5]
         }
         best_params, _ = grid_search(params)
         C = best_params['C']
