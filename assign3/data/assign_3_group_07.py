@@ -11,6 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix
 
 columns = {
     0: "ctx-lh-inferiorparietal",
@@ -59,14 +60,36 @@ def grid_search(params):
     return clf.best_params_, clf.cv_results_['mean_test_score']
 
 
+def get_errors(svm):
+    y_pred = svm.predict(X_test)
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+    tpr = tp / (tp + fn)
+    tnr = tn / (tn + fp)
+    ppv = tp / (tp + fp)
+    acc = (tp + tn) / (tp + tn + fp + fn)
+    ba = (tpr + tnr) / 2
+    print(f'accuracy: {acc}')
+    print(f'sensitivity: {tpr}')
+    print(f'specificity: {tnr}')
+    print(f'precision: {ppv}')
+    print(f'recall: {tpr}')
+    print(f'balanced accuracy: {ba}')
+
+
 def retrain_test(kernel, C, d=3, gamma='scale'):
+    print(f"kernel: {kernel}")
+    print(f"C: {C}")
     if kernel == 'linear':
         svm = SVC(kernel=kernel, C=C)
     elif kernel == 'poly':
         svm = SVC(kernel=kernel, C=C, degree=d)
+        print(f"d: {d}")
     elif kernel == 'rbf':
         svm = SVC(kernel=kernel, C=C, gamma=gamma)
+        print(f"gamma: {gamma}")
     svm.fit(X_test, y_test)
+    get_errors(svm)
+    print("================================")
 
 
 def classify(kernel):
@@ -86,7 +109,7 @@ def classify(kernel):
         params = {
             'kernel': [kernel],
             'C': [0.1, 1, 10, 100, 1000],
-            'degree': [2, 3, 4, 5]
+            'degree': [2, 3]
         }
         best_params, _ = grid_search(params)
         C = best_params['C']
@@ -119,6 +142,23 @@ def Q3_results():
 
 
 def diagnoseDAT(Xtest, data_dir):
+    trainDAT = pd.read_csv(f'{data_dir}/train.fdg_pet.sDAT.csv', header=None)
+    trainDAT.rename(columns=columns, inplace=True)
+    trainDAT['label'] = 1
+    trainNC = pd.read_csv(f'{data_dir}/train.fdg_pet.sNC.csv', header=None)
+    trainNC.rename(columns=columns, inplace=True)
+    trainNC['label'] = -1
+    trainDf = pd.concat([train_DAT, train_NC], axis=0)
+    testDAT = pd.read_csv(f'{data_dir}/test.fdg_pet.sDAT.csv', header=None)
+    testDAT.rename(columns=columns, inplace=True)
+    testDAT['label'] = 1
+    testNC = pd.read_csv(f'{data_dir}/test.fdg_pet.sNC.csv', header=None)
+    testNC.rename(columns=columns, inplace=True)
+    testNC['label'] = -1
+    testDf = pd.concat([test_DAT, test_NC], axis=0)
+    df = pd.concat([trainDf, testDf], axis=0)
+    Xtrain = df.drop(columns=['label'])
+    ytrain = df['label']
     ytest = None
     return ytest
 
