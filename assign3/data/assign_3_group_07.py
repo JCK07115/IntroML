@@ -30,37 +30,36 @@ columns = {
     13: "ctx-lh-supramarginal"
 }
 
-# creating the training dataset
-train_DAT = pd.read_csv('train.fdg_pet.sDAT.csv', header=None)
-train_DAT.rename(columns=columns, inplace=True)
-train_DAT['label'] = 1
-train_NC = pd.read_csv('train.fdg_pet.sNC.csv', header=None)
-train_NC.rename(columns=columns, inplace=True)
-train_NC['label'] = -1
-train_df = pd.concat([train_DAT, train_NC], axis=0)
 
-# creating the test dataset
-test_DAT = pd.read_csv('test.fdg_pet.sDAT.csv', header=None)
-test_DAT.rename(columns=columns, inplace=True)
-test_DAT['label'] = 1
-test_NC = pd.read_csv('test.fdg_pet.sNC.csv', header=None)
-test_NC.rename(columns=columns, inplace=True)
-test_NC['label'] = -1
-test_df = pd.concat([test_DAT, test_NC], axis=0)
+def get_data(data_dir):
+    train_DAT = pd.read_csv(f'{data_dir}/train.fdg_pet.sDAT.csv', header=None)
+    train_DAT.rename(columns=columns, inplace=True)
+    train_DAT['label'] = 1
+    train_NC = pd.read_csv(f'{data_dir}/train.fdg_pet.sNC.csv', header=None)
+    train_NC.rename(columns=columns, inplace=True)
+    train_NC['label'] = -1
+    train_df = pd.concat([train_DAT, train_NC], axis=0)
+    test_DAT = pd.read_csv(f'{data_dir}/test.fdg_pet.sDAT.csv', header=None)
+    test_DAT.rename(columns=columns, inplace=True)
+    test_DAT['label'] = 1
+    test_NC = pd.read_csv(f'{data_dir}/test.fdg_pet.sNC.csv', header=None)
+    test_NC.rename(columns=columns, inplace=True)
+    test_NC['label'] = -1
+    test_df = pd.concat([test_DAT, test_NC], axis=0)
+    X_train = train_df.drop(columns=['label'])
+    y_train = train_df['label']
+    X_test = test_df.drop(columns=['label'])
+    y_test = test_df['label']
+    return X_train, y_train, X_test, y_test
 
-X_train = train_df.drop(columns=['label'])
-y_train = train_df['label']
-X_test = test_df.drop(columns=['label'])
-y_test = test_df['label']
 
-
-def grid_search(params):
+def grid_search(params, X_train, y_train):
     clf = GridSearchCV(SVC(), params)
     clf.fit(X_train, y_train)
     return clf.best_params_, clf.cv_results_['mean_test_score']
 
 
-def get_errors(svm):
+def get_errors(svm, X_test, y_test):
     y_pred = svm.predict(X_test)
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
     tpr = tp / (tp + fn)
@@ -76,7 +75,14 @@ def get_errors(svm):
     print(f'balanced accuracy: {ba}')
 
 
-def retrain_test(kernel, C, d=3, gamma='scale'):
+def retrain_test(kernel,
+                 X_train,
+                 y_train,
+                 X_test,
+                 y_test,
+                 C,
+                 d=3,
+                 gamma='scale'):
     print(f"kernel: {kernel}")
     print(f"C: {C}")
     if kernel == 'linear':
@@ -87,18 +93,19 @@ def retrain_test(kernel, C, d=3, gamma='scale'):
     elif kernel == 'rbf':
         svm = SVC(kernel=kernel, C=C, gamma=gamma)
         print(f"gamma: {gamma}")
-    svm.fit(X_test, y_test)
-    get_errors(svm)
+    svm.fit(X_train, y_train)
+    get_errors(svm, X_test, y_test)
     print("================================")
 
 
-def classify(kernel):
+def classify(kernel, data_dir):
+    X_train, y_train, X_test, y_test = get_data(data_dir)
     if kernel == 'linear':
         Cs = [0.1, 1, 10, 100, 1000]
         params = {'kernel': [kernel], 'C': Cs}
-        best_params, Score = grid_search(params)
+        best_params, Score = grid_search(params, X_train, y_train)
         C = best_params['C']
-        retrain_test(kernel, C)
+        retrain_test(kernel, X_train, y_train, X_test, y_test, C)
         plt.figure(figsize=(8, 6))
         plt.plot(Cs, Score)
         plt.xlabel('C')
@@ -111,34 +118,34 @@ def classify(kernel):
             'C': [0.1, 1, 10, 100, 1000],
             'degree': [2, 3, 4, 5]
         }
-        best_params, _ = grid_search(params)
+        best_params, _ = grid_search(params, X_train, y_train)
         C = best_params['C']
         d = best_params['degree']
-        retrain_test(kernel, C, d=d)
+        retrain_test(kernel, X_train, y_train, X_test, y_test, C, d=d)
     elif kernel == 'rbf':
         params = {
             'kernel': [kernel],
             'C': [0.1, 1, 10, 100, 1000],
             'gamma': [1, 0.1, 0.01, 0.001, 0.0001]
         }
-        best_params, _ = grid_search(params)
+        best_params, _ = grid_search(params, X_train, y_train)
         C = best_params['C']
         gamma = best_params['gamma']
-        retrain_test(kernel, C, gamma=gamma)
+        retrain_test(kernel, X_train, y_train, X_test, y_test, C, gamma=gamma)
     else:
         print('Only support the following kernel: linear, poly, rbf')
 
 
 def Q1_results():
-    classify('linear')
+    classify('linear', '.')
 
 
 def Q2_results():
-    classify('poly')
+    classify('poly', '.')
 
 
 def Q3_results():
-    classify('rbf')
+    classify('rbf', '.')
 
 
 def diagnoseDAT(Xtest, data_dir):
@@ -148,14 +155,14 @@ def diagnoseDAT(Xtest, data_dir):
     trainNC = pd.read_csv(f'{data_dir}/train.fdg_pet.sNC.csv', header=None)
     trainNC.rename(columns=columns, inplace=True)
     trainNC['label'] = -1
-    trainDf = pd.concat([train_DAT, train_NC], axis=0)
+    trainDf = pd.concat([trainDAT, trainNC], axis=0)
     testDAT = pd.read_csv(f'{data_dir}/test.fdg_pet.sDAT.csv', header=None)
     testDAT.rename(columns=columns, inplace=True)
     testDAT['label'] = 1
     testNC = pd.read_csv(f'{data_dir}/test.fdg_pet.sNC.csv', header=None)
     testNC.rename(columns=columns, inplace=True)
     testNC['label'] = -1
-    testDf = pd.concat([test_DAT, test_NC], axis=0)
+    testDf = pd.concat([testDAT, testNC], axis=0)
     df = pd.concat([trainDf, testDf], axis=0)
     Xtrain = df.drop(columns=['label'])
     ytrain = df['label']
