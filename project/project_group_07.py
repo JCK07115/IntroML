@@ -19,7 +19,8 @@ ages = pd.Series(
     name='Age').astype(int)
 images = pd.concat([filepaths, ages], axis=1).sample(
     frac=1.0, random_state=random_state).reset_index(drop=True)
-image_df = images.sample(sample_num, random_state=1).reset_index(drop=True)
+image_df = images.sample(sample_num,
+                         random_state=random_state).reset_index(drop=True)
 train_df, test_df = train_test_split(image_df,
                                      train_size=train_size,
                                      shuffle=True,
