@@ -115,7 +115,7 @@ def classify(kernel, data_dir):
     elif kernel == 'poly':
         params = {
             'kernel': [kernel],
-            'C': [0.1, 1, 10, 100, 1000],
+            'C': [10],
             'degree': [2, 3, 4, 5]
         }
         best_params, _ = grid_search(params, X_train, y_train)
@@ -164,13 +164,26 @@ def diagnoseDAT(Xtest, data_dir):
     testNC['label'] = -1
     testDf = pd.concat([testDAT, testNC], axis=0)
     df = pd.concat([trainDf, testDf], axis=0)
+
+    X_train, y_train, X_test, y_test = get_data('.')
     Xtrain = df.drop(columns=['label'])
     ytrain = df['label']
-    ytest = None
-    return ytest
+    params = {
+        'kernel': ['rbf'],
+        'C': [8.0, 8.1,8.2,8.3,8.4,8.5, 8.6,8.7,8.8,8.9],
+        'gamma': [0.9, 0.95, 0.99, 1.0, 1.01, 1.05, 1.09, 1.1, 1.2, 1.3]
+    }
+    best_params, _ = grid_search(params, X_train, y_train)
+    C = best_params['C']
+    gamma = best_params['gamma']
+    retrain_test('rbf', X_train, y_train, X_test, y_test, C, gamma=gamma)
+
+    # return ytest
 
 
 if __name__ == "__main__":
-    Q1_results()
-    Q2_results()
-    Q3_results()
+    # Q1_results()
+    # Q2_results()
+    # Q3_results()
+    X_train, y_train, X_test, y_test = get_data('.')
+    y_test = diagnoseDAT(X_test, data_dir='.')
