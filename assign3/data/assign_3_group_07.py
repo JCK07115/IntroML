@@ -166,7 +166,7 @@ def diagnoseDAT(Xtest, data_dir):
     df = pd.concat([trainDf, testDf], axis=0)
     Xtrain = df.drop(columns=['label'])
     ytrain = df['label']
-    svm = SVC(kernel='rbf', C=8.6, gamma=1.1)
+    svm = SVC(kernel='rbf', C=8.6, gamma='scale')
     svm.fit(Xtrain, ytrain)
     return svm.predict(Xtest)
 
